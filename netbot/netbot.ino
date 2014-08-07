@@ -16,6 +16,9 @@
 #define MAX_OUTPUT 2000
 #define MIN_OUTPUT 1000
 
+#define ROTATION_MAX 1750
+#define ROTATION_MIN 1250
+
 int timeout = 0;
 boolean timedOut = false;
 
@@ -133,10 +136,22 @@ long scale(long input, long lowIn, long centerIn, long highIn, long lowOut, long
   }
 }
 
+long deadzone(long input, long deadMax, long deadMin, long deadVal){
+  if(input > deadMin && input < deadMax){
+    return deadVal;
+  }else{
+    return input;
+  }
+}
+
 void scaleInput(){
   xj = scale(xj, 0, 514, 960, -500, 0, 500);
   yj = scale(yj, 0, 502, 1023, 500, 0, -500);
-  zj = scale(zj, 52, 527, 1023, 500, 0, -500);
+  zj = scale(zj, 52, 527, 1023, 150, 0, -150);
+  
+  xj = deadzone(xj, 10, -10, 0);
+  yj = deadzone(yj, 10, -10, 0);
+  zj = deadzone(zj, 10, -10, 0);
 }
 
 void setup(){
@@ -169,9 +184,9 @@ void loop(){
       }
     }
   }else{ //joystick control
-    xj = analogRead(0);
-    yj = analogRead(1);
-    zj = analogRead(2);
+    xj = analogRead(1);
+    yj = analogRead(2);
+    zj = analogRead(0);
     scaleInput();
   }
   
