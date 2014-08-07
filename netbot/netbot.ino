@@ -42,6 +42,10 @@ Servo motor1;
 Servo motor2;
 Servo motor3;
 
+/**
+* calculates what speed all the wheels should move to get the robot moving
+* in the correct direction at the target speed.
+*/
 void calcWheelOutput(){
   wheel1 = constrain(xj+zj, MIN_INPUT, MAX_INPUT);
   wheel2 = constrain((-xj/2+(0.866f*yj)+zj), MIN_INPUT, MAX_INPUT);
@@ -52,6 +56,9 @@ void calcWheelOutput(){
   wheel3 = map(wheel3, MIN_INPUT, MAX_INPUT, MIN_OUTPUT, MAX_OUTPUT);
 }
 
+/*
+* prints all wheels speeds in a somewhat user friendly way through serial interface for debugging
+*/
 void printWheelOutput(){
   Serial.print("wheel1: ");
   Serial.println(wheel1);
@@ -62,6 +69,9 @@ void printWheelOutput(){
   Serial.println();
 }
 
+/**
+* prints calculated output speeds
+*/
 void printOutput(){
   Serial.print("output1: ");
   Serial.print(output1);
@@ -71,6 +81,9 @@ void printOutput(){
   Serial.println(output3);
 }
 
+/*
+* prints joystick input for debugging
+*/
 void printInput(){
   Serial.print("xj: ");
   Serial.print(xj);
@@ -80,6 +93,10 @@ void printInput(){
   Serial.println(zj);
 }
 
+/**
+* set wheels smooths sets wheel speeds, 
+* you must run calcWheelOutput first in order to update calculated wheel speeds before setting
+*/
 void setWheels(){
   smooth(wheel1, output1);
   smooth(wheel2, output2);
@@ -90,6 +107,10 @@ void setWheels(){
   motor3.writeMicroseconds(output3);
 }
 
+/**
+* runs simplified proportional algorithm to get robot accelerating at target speed.
+* how fast the robot reaches its target speed depends on SMOOTHING_SCALE constant.
+*/
 void smooth(int input, int &output){
 //  Serial.print("input: ");
 //  Serial.print(input);
@@ -106,6 +127,9 @@ void smooth(int input, int &output){
   output += change;
 }
 
+/**
+* updates serial timeout and calculates and sets wheel values if using serial
+*/
 void updateTimeout(){
   if(timeout > MAX_TIMEOUT){
     xj = yj = zj = 0;
@@ -122,10 +146,16 @@ void updateTimeout(){
   }
 }
 
+/**
+* resets serial timeout if using serial for control
+*/
 void resetTimeout(){
   timeout = 0;
 }
 
+/**
+* dynamic scale function to adjust for innacuracies in joystick scaling.
+*/
 long scale(long input, long lowIn, long centerIn, long highIn, long lowOut, long centerOut, long highOut){
   if(input > centerIn){
     return map(input, centerIn, highIn, centerOut, highOut);
@@ -136,6 +166,10 @@ long scale(long input, long lowIn, long centerIn, long highIn, long lowOut, long
   }
 }
 
+/**
+* if the input is between deadMin and deadMax this function will return deadVal, otherwise it will return an unmodified deadVal.
+* this function is for adding a deadzone to joystick axis.
+*/
 long deadzone(long input, long deadMax, long deadMin, long deadVal){
   if(input > deadMin && input < deadMax){
     return deadVal;
@@ -144,6 +178,9 @@ long deadzone(long input, long deadMax, long deadMin, long deadVal){
   }
 }
 
+/*
+* scales all joystick inputs specifically tuned for current physical joysticks
+*/
 void scaleInput(){
   xj = scale(xj, 0, 514, 960, -500, 0, 500);
   yj = scale(yj, 0, 502, 1023, 500, 0, -500);
